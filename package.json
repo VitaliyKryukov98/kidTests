@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.12.7",
+    "@types/qrcode": "^1.5.0",
     "@types/react": "^18.2.61",
     "@types/react-dom": "^18.2.19",
     "autoprefixer": "^10.4.19",
