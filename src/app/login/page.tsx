@@ -1,15 +1,15 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useRouter } from 'next/navigation';
+import { useSupabaseClient } from '@supabase/auth-helpers-react';
 
 const EMAIL_PLACEHOLDER = 'admin@example.com';
 
 export default function LoginPage() {
   const router = useRouter();
-  const supabase = createClientComponentClient();
+  const supabase = useSupabaseClient();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -52,9 +52,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-black text-white">
       <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-8 shadow-xl">
         <h1 className="text-2xl font-bold">Вход для администраторов</h1>
-        <p className="mt-2 text-sm text-white/60">
-          Используйте учётные данные администратора Supabase.
-        </p>
+        <p className="mt-2 text-sm text-white/60">Используйте учётные данные администратора.</p>
 
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-2">

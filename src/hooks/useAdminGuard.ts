@@ -1,14 +1,15 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useSupabaseClient } from '@supabase/auth-helpers-react';
 
 type GuardState = 'loading' | 'authorized';
 
 export function useAdminGuard() {
   const router = useRouter();
-  const supabase = useMemo(() => createClientComponentClient(), []);
+  const pathname = usePathname();
+  const supabase = useSupabaseClient();
   const [state, setState] = useState<GuardState>('loading');
 
   useEffect(() => {
@@ -20,7 +21,9 @@ export function useAdminGuard() {
       } = await supabase.auth.getSession();
 
       if (!session) {
-        router.replace('/login');
+        if (pathname !== '/login') {
+          router.replace('/login');
+        }
         return;
       }
 
@@ -28,11 +31,12 @@ export function useAdminGuard() {
         .from('profiles')
         .select('is_admin')
         .eq('id', session.user.id)
-        .single();
+        .maybeSingle();
 
       if (!profile?.is_admin) {
-        await supabase.auth.signOut();
-        router.replace('/login');
+        if (pathname !== '/login') {
+          router.replace('/login');
+        }
         return;
       }
 
@@ -46,7 +50,7 @@ export function useAdminGuard() {
     return () => {
       isMounted = false;
     };
-  }, [router, supabase]);
+  }, [pathname, router, supabase]);
 
   return {
     isAuthorized: state === 'authorized',
