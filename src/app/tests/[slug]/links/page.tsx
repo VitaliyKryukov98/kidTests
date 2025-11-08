@@ -22,7 +22,7 @@ type TestLinkRow = {
   is_active: boolean;
 };
 
-const DEFAULT_BASE_URL = 'http://localhost:3000';
+const DEFAULT_BASE_URL = '';
 
 const formatVersionLabel = (version: number | null) => {
   if (typeof version !== 'number') {
@@ -48,17 +48,24 @@ export default function TestLinkPage() {
 
   const baseUrl = useMemo(() => {
     const envValue = process.env.NEXT_PUBLIC_APP_URL;
-    if (!envValue || envValue.trim().length === 0) {
-      return DEFAULT_BASE_URL;
+    if (envValue && envValue.trim().length > 0) {
+      return envValue.replace(/\/$/, '');
     }
-    return envValue.replace(/\/$/, '');
+    if (typeof window !== 'undefined') {
+      return window.location.origin.replace(/\/$/, '');
+    }
+    return DEFAULT_BASE_URL;
   }, []);
 
   const publicUrl = useMemo(() => {
     if (!link?.public_id) {
       return '';
     }
-    return `${baseUrl}/t/${link.public_id}`;
+    const origin = baseUrl || (typeof window !== 'undefined' ? window.location.origin.replace(/\/$/, '') : '');
+    if (!origin) {
+      return '';
+    }
+    return `${origin}/t/${link.public_id}`;
   }, [baseUrl, link?.public_id]);
 
   useEffect(() => {
@@ -132,8 +139,9 @@ export default function TestLinkPage() {
           ensuredLink = createdLink;
         }
 
-        const url = `${baseUrl}/t/${ensuredLink.public_id}`;
-        const dataUrl = await QRCode.toDataURL(url);
+        const origin = baseUrl || (typeof window !== 'undefined' ? window.location.origin.replace(/\/$/, '') : '');
+        const url = origin ? `${origin}/t/${ensuredLink.public_id}` : '';
+        const dataUrl = origin ? await QRCode.toDataURL(url) : '';
 
         if (cancelled) {
           return;
@@ -163,7 +171,9 @@ export default function TestLinkPage() {
   }, [slug, baseUrl, isAuthorized, supabase]);
 
   useEffect(() => {
-    if (!link?.public_id) {
+    const currentLink = link;
+    const origin = baseUrl || (typeof window !== 'undefined' ? window.location.origin.replace(/\/$/, '') : '');
+    if (!currentLink?.public_id || !origin) {
       setQrDataUrl('');
       return;
     }
@@ -172,7 +182,11 @@ export default function TestLinkPage() {
 
     async function buildQr() {
       try {
-        const dataUrl = await QRCode.toDataURL(`${baseUrl}/t/${link?.public_id ?? ''}`);
+        if (!currentLink?.public_id) {
+          return;
+        }
+
+        const dataUrl = await QRCode.toDataURL(`${origin}/t/${currentLink.public_id}`);
         if (!cancelled) {
           setQrDataUrl(dataUrl);
         }
