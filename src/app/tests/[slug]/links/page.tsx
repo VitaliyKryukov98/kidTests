@@ -172,7 +172,7 @@ export default function TestLinkPage() {
 
     async function buildQr() {
       try {
-        const dataUrl = await QRCode.toDataURL(`${baseUrl}/t/${link.public_id}`);
+        const dataUrl = await QRCode.toDataURL(`${baseUrl}/t/${link?.public_id ?? ''}`);
         if (!cancelled) {
           setQrDataUrl(dataUrl);
         }
